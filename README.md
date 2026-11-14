@@ -134,7 +134,8 @@ complex ZWJ emoji may vary).
 > between environments and renderer versions. For a brand-accurate, reproducible image,
 > load the exact font you want via `fonts` / `fontUrl` **and** set the matching
 > `font-family`. This avoids the "random look" of auto-chosen fonts, so the image comes
-> out exactly how you intend.
+> out exactly how you intend. Any `font-family` you write in the HTML overrides this
+> default — the Noto stack is only a fallback, exactly like a browser.
 
 - `fonts: false` disables the default stack (Geist only — non-Latin becomes tofu ❌).
 - Emoji work automatically; **plain symbols** (`→`, `✓`, `⇒`, …) are not emoji, so they
@@ -161,6 +162,42 @@ curl -X POST "$BASE/api" -H "content-type: application/json" \
 
 > Use the same family name in `font-family` as the font you load (Google Fonts
 > `name`, or the font file's internal name for `fontUrl`).
+
+#### Fonts in your HTML override the default (browser-like)
+
+The `font-family` you set in your HTML/CSS **always wins** over the built-in default —
+the renderer follows the normal CSS cascade, **exactly like a browser**. The default
+Noto stack is only used for text that has **no (available) `font-family`**. You only
+need to **load** the font you reference via `fonts` / `fontUrl`; if it isn't loaded, the
+renderer falls back to the default stack (browser behaviour):
+
+```bash
+curl -X POST "$BASE/api" -H "content-type: application/json" \
+  -d '{
+    "html": "<div style=\"font-family:'"'"'Inter'"'"';font-size:40px;padding:40px;background:#fff\">Brand title <span style=\"font-family:'"'"'Tiro Devanagari Hindi'"'"'\">॥ श्री राम जय राम ॥</span></div>",
+    "fonts": [{"name":"Inter"},{"name":"Tiro Devanagari Hindi"}],
+    "width": 900, "height": 300
+  }' -o out.png
+```
+
+- Outer `<div>` → **Inter** (overrides the default)
+- Inner `<span>` → **Tiro Devanagari Hindi** (nested override)
+- Text with no `font-family` → the default Noto stack
+- A family referenced but **not loaded** → falls back to the default stack (just like a browser)
+
+Passing `fonts` **replaces** the automatic stack, so add every family you use. Handy
+decorative Devanagari (bhakti-style) options from Google Fonts:
+
+| Font | Vibe |
+|------|------|
+| **Tiro Devanagari Hindi** | scriptural / book serif (recommended) |
+| **Kalam** | handwritten, devotional feel |
+| **Rozha One** | bold display, poster |
+| **Yatra One** | festive decorative |
+
+> Multi-word family names must be **quoted** in `font-family` (e.g. `'Tiro Devanagari Hindi'`).
+> To keep Latin on Geist while adding a bhakti font, just apply `font-family` to the Hindi
+> element only — the rest stays default.
 
 ## Local development
 
