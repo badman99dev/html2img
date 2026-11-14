@@ -105,7 +105,7 @@
 <body>
   <header>
     <div class="logo">html<b>2img</b></div>
-    <div class="tag">HTML / CSS → image API · no headless browser</div>
+    <div class="tag">HTML / CSS → image conversion API · no headless browser</div>
     <div class="spacer"></div>
     <a class="gh" href="https://github.com/badman99dev/html2img">GitHub</a>
   </header>
@@ -139,8 +139,8 @@
           <div style="flex:0"><label>&nbsp;</label><button id="go">Generate</button></div>
         </div>
         <div>
-          <label>Embed as image</label>
-          <div class="url" id="embed"></div>
+          <label>Convert with cURL</label>
+          <div class="url" id="curl"></div>
         </div>
       </div>
     </section>
@@ -151,7 +151,7 @@
         <div class="placeholder">Press <b style="color:#e6edf6">Generate</b> to render.</div>
       </div>
       <div class="meta" id="meta">
-        <span>Endpoint: <code>GET / POST /api</code></span>
+        <span>Endpoint: <code>POST /api</code> — one-shot conversion, store the result yourself</span>
       </div>
     </section>
   </main>
@@ -174,9 +174,10 @@
 
   function render() {
     const data = payload();
-    const url = new URL("/api", location.origin);
-    for (const [k, v] of Object.entries(data)) if (v !== "" && v != null) url.searchParams.set(k, v);
-    $("embed").textContent = url.toString();
+    $("curl").textContent =
+      "curl -X POST " + location.origin + "/api -H \"content-type: application/json\" -d '" +
+      JSON.stringify({ html: data.html, width: data.width, height: data.height, format: data.format }) +
+      "' -o out." + (data.format === "jpeg" ? "jpg" : data.format);
 
     preview.innerHTML = '<div class="placeholder">Rendering…</div>';
     const img = new Image();

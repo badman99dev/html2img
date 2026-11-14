@@ -4,12 +4,17 @@ export const config = { maxDuration: 30 };
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Accept",
 };
 
+const NOTICE =
+  "html2img is a conversion API. POST your HTML/CSS and store the returned image on your side. " +
+  "It does not serve embeddable image URLs, so a hotlinked request can never trigger a re-render.";
+
 const USAGE = {
-  endpoint: "GET or POST /api",
+  endpoint: "POST /api",
+  body: "JSON or form-encoded payload",
   params: {
     html: "HTML markup to render (required unless url is given)",
     url: "Fetch a remote page and render it (best-effort, external CSS/fonts may not load)",
@@ -19,10 +24,8 @@ const USAGE = {
     format: `Output format: ${Object.keys(FORMATS).join(" | ")} (default png)`,
     quality: `Quality for jpeg/webp, ${LIMITS.quality.min}-${LIMITS.quality.max} (default ${LIMITS.quality.fallback})`,
   },
-  examples: {
-    get: "/api?html=%3Ch1%3EHello%3C%2Fh1%3E&width=1200&height=630",
-    post: 'curl -X POST /api -H "content-type: application/json" -d \'{"html":"<h1>Hi</h1>"}\' -o out.png',
-  },
+  example:
+    'curl -X POST /api -H "content-type: application/json" -d \'{"html":"<h1>Hi</h1>","width":1200,"height":630}\' -o out.png',
 };
 
 function json(res, status, data) {
@@ -63,21 +66,15 @@ export default async function handler(req, res) {
     return res.end();
   }
 
-  if (!["GET", "POST"].includes(req.method)) {
-    return json(res, 405, { error: `Method ${req.method} not allowed`, usage: USAGE });
+  if (req.method !== "POST") {
+    return json(res, req.method === "GET" ? 200 : 405, { notice: NOTICE, usage: USAGE });
   }
 
-  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-
   let params;
-  if (req.method === "POST") {
-    try {
-      params = await readBody(req);
-    } catch (error) {
-      return json(res, 400, { error: "Invalid request body", detail: String(error.message || error) });
-    }
-  } else {
-    params = Object.fromEntries(url.searchParams.entries());
+  try {
+    params = await readBody(req);
+  } catch (error) {
+    return json(res, 400, { error: "Invalid request body", detail: String(error.message || error) });
   }
 
   let html = typeof params.html === "string" ? params.html : "";
@@ -112,7 +109,8 @@ export default async function handler(req, res) {
     res.statusCode = 200;
     res.setHeader("Content-Type", contentType);
     res.setHeader("Content-Length", buffer.length);
-    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=86400, stale-while-revalidate=604800");
+    res.setHeader("Content-Disposition", "attachment");
+    res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Image-Width", options.width);
     res.setHeader("X-Image-Height", options.height);
     res.setHeader("X-Image-Format", options.format);
