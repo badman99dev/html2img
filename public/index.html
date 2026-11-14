@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>html2img — HTML/CSS to image API</title>
+<meta name="description" content="Turn HTML and CSS into PNG, JPEG, or WebP images. No headless browser." />
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #121722;
+    --panel-2: #0e131d;
+    --border: #1f2836;
+    --text: #e6edf6;
+    --muted: #7d8aa0;
+    --accent: #4f8cff;
+    --accent-2: #22d3ee;
+    --ok: #2dd4a7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 80% -10%, #16233a 0%, var(--bg) 55%);
+    color: var(--text);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 26px; border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-weight: 800; font-size: 19px; letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #fff, #8fb6ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .logo b { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+  header .spacer { flex: 1; }
+  header .tag { color: var(--muted); font-size: 13px; }
+  header .gh {
+    font-size: 13px; padding: 7px 13px; border: 1px solid var(--border);
+    border-radius: 9px; background: var(--panel);
+  }
+  main {
+    display: grid; grid-template-columns: minmax(360px, 1fr) minmax(360px, 1.15fr);
+    gap: 18px; padding: 20px; max-width: 1500px; margin: 0 auto;
+    height: calc(100% - 65px);
+  }
+  @media (max-width: 940px) { main { grid-template-columns: 1fr; height: auto; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel h2 {
+    margin: 0; padding: 13px 16px; font-size: 12.5px; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--muted); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .body { padding: 14px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; letter-spacing: .02em; }
+  textarea, input, select {
+    width: 100%; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px;
+    font: 13px/1.5 ui-monospace, "SF Mono", Menlo, monospace; outline: none; resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+  textarea.html { min-height: 190px; }
+  textarea.css { min-height: 84px; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .controls { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .controls > div { flex: 1; min-width: 74px; }
+  button {
+    cursor: pointer; border: none; border-radius: 10px; padding: 11px 18px;
+    font-weight: 700; font-size: 14px; color: #06101f;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: filter .15s, transform .05s;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .55; cursor: wait; }
+  button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); font-weight: 600; }
+  .preview {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 16px; background:
+      repeating-conic-gradient(#0a0d14 0% 25%, #0d1119 0% 50%) 50% / 22px 22px;
+    overflow: auto; min-height: 260px;
+  }
+  .preview img {
+    max-width: 100%; max-height: 100%; border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5); background: #fff;
+  }
+  .preview .placeholder { color: var(--muted); font-size: 14px; text-align: center; }
+  .meta { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+  .meta b { color: var(--ok); }
+  .url {
+    font: 12px/1.5 ui-monospace, monospace; word-break: break-all;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; color: var(--muted);
+  }
+  code { background: #0a0d14; padding: 1px 5px; border-radius: 5px; color: #b7c8e6; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">html<b>2img</b></div>
+    <div class="tag">HTML / CSS → image API · no headless browser</div>
+    <div class="spacer"></div>
+    <a class="gh" href="https://github.com/badman99dev/html2img">GitHub</a>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Input</h2>
+      <div class="body">
+        <div>
+          <label>HTML</label>
+          <textarea id="html" class="html" spellcheck="false">&lt;div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#312e81)"&gt;
+  &lt;h1 style="margin:0;font-size:64px;background:linear-gradient(90deg,#38bdf8,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent"&gt;html2img&lt;/h1&gt;
+  &lt;p style="margin:0;color:#cbd5e1;font-size:24px"&gt;HTML and CSS → an image.&lt;/p&gt;
+&lt;/div&gt;</textarea>
+        </div>
+        <div>
+          <label>CSS (optional)</label>
+          <textarea id="css" class="css" spellcheck="false"></textarea>
+        </div>
+        <div class="controls">
+          <div><label>Width</label><input id="width" type="number" value="1200" /></div>
+          <div><label>Height</label><input id="height" type="number" value="630" /></div>
+          <div><label>Format</label>
+            <select id="format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+            </select>
+          </div>
+          <div><label>Quality</label><input id="quality" type="number" value="90" /></div>
+          <div style="flex:0"><label>&nbsp;</label><button id="go">Generate</button></div>
+        </div>
+        <div>
+          <label>Embed as image</label>
+          <div class="url" id="embed"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Preview</h2>
+      <div class="preview" id="preview">
+        <div class="placeholder">Press <b style="color:#e6edf6">Generate</b> to render.</div>
+      </div>
+      <div class="meta" id="meta">
+        <span>Endpoint: <code>GET / POST /api</code></span>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const preview = $("preview");
+  const meta = $("meta");
+
+  function payload() {
+    return {
+      html: $("html").value,
+      css: $("css").value,
+      width: Number($("width").value),
+      height: Number($("height").value),
+      format: $("format").value,
+      quality: Number($("quality").value),
+    };
+  }
+
+  function render() {
+    const data = payload();
+    const url = new URL("/api", location.origin);
+    for (const [k, v] of Object.entries(data)) if (v !== "" && v != null) url.searchParams.set(k, v);
+    $("embed").textContent = url.toString();
+
+    preview.innerHTML = '<div class="placeholder">Rendering…</div>';
+    const img = new Image();
+    const t0 = performance.now();
+    img.onload = () => {
+      preview.innerHTML = "";
+      preview.appendChild(img);
+      meta.innerHTML =
+        "<span>Size: <b>" + data.width + "×" + data.height + "</b></span>" +
+        "<span>Format: <b>" + data.format + "</b></span>" +
+        "<span>Quality: <b>" + data.quality + "</b></span>" +
+        "<span>Rendered in <b>" + Math.round(performance.now() - t0) + " ms</b></span>";
+    };
+    img.onerror = () => {
+      preview.innerHTML = '<div class="placeholder">Render failed — check console.</div>';
+    };
+    fetch("/api", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    }).then(async (r) => {
+      if (!r.ok) throw new Error(await r.text());
+      img.src = URL.createObjectURL(await r.blob());
+    }).catch((e) => {
+      preview.innerHTML = '<div class="placeholder">' + e.message + "</div>";
+    });
+  }
+
+  $("go").addEventListener("click", render);
+  render();
+</script>
+</body>
+</html>

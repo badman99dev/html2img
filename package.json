@@ -1,0 +1,17 @@
+{
+  "name": "html2img",
+  "version": "1.0.0",
+  "description": "HTML/CSS to image generation API — render markup or a web page into a PNG, JPEG, or WebP. Zero headless browser, powered by Takumi.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "node dev-server.mjs",
+    "start": "node dev-server.mjs"
+  },
+  "dependencies": {
+    "takumi-js": "^2.20.0"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
