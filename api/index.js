@@ -23,6 +23,8 @@ const USAGE = {
     height: `Image height in px, ${LIMITS.height.min}-${LIMITS.height.max} (default ${LIMITS.height.fallback})`,
     format: `Output format: ${Object.keys(FORMATS).join(" | ")} (default png)`,
     quality: `Quality for jpeg/webp, ${LIMITS.quality.min}-${LIMITS.quality.max} (default ${LIMITS.quality.fallback})`,
+    fonts: 'Google Fonts to load, e.g. [{"name":"Noto Sans Devanagari"},{"name":"Inter","weight":"400..700"}]',
+    fontUrl: "URL of a custom font file (.woff2/.ttf/.otf) to load",
   },
   example:
     'curl -X POST /api -H "content-type: application/json" -d \'{"html":"<h1>Hi</h1>","width":1200,"height":630}\' -o out.png',
@@ -96,6 +98,15 @@ export default async function handler(req, res) {
     return json(res, 400, { error: "Missing 'html' (or 'url') parameter", usage: USAGE });
   }
 
+  let fonts = params.fonts;
+  if (typeof fonts === "string") {
+    try {
+      fonts = JSON.parse(fonts);
+    } catch {
+      fonts = [fonts];
+    }
+  }
+
   try {
     const { buffer, contentType, options } = await renderImage({
       html,
@@ -104,6 +115,8 @@ export default async function handler(req, res) {
       height: params.height,
       format: params.format,
       quality: params.quality,
+      fonts,
+      fontUrl: params.fontUrl,
     });
 
     res.statusCode = 200;
