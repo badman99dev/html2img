@@ -26,7 +26,7 @@ trigger a re-render on the server. `GET` returns the docs JSON, never an image.
 | `height` | number | Image height in px, `16–4000` (default `630`) |
 | `format` | string | `png` \| `jpeg` \| `webp` (default `png`) |
 | `quality` | number | `1–100`, for `jpeg`/`webp` (default `90`) |
-| `fonts` | array | Google Fonts to load, e.g. `[{"name":"Noto Sans Devanagari"},{"name":"Inter","weight":"400..700"}]` |
+| `fonts` | array \| false | Google Fonts to load, e.g. `[{"name":"Noto Sans Devanagari"},{"name":"Inter","weight":"400..700"}]`. **Omit** to use the built-in Noto stack. `false` disables it (Geist only) |
 | `fontUrl` | string | URL of a custom font file (`.woff2` / `.ttf` / `.otf`) to load |
 
 ### Example
@@ -118,13 +118,27 @@ stay in normal flow. Overlays go in absolutely positioned layers.
 
 ### Text, symbols & fonts
 
-The only built-in font is **Geist**, which covers **Latin (weights 300–800)**. Any
-glyph outside that renders as a **tofu box (❌)** — e.g. `→`, `✓`, `₹`, CJK, Devanagari.
+By default the renderer loads a **Noto fallback stack**, so **Latin and non-Latin** text
+render out of the box — you don't need to set `font-family`:
 
-- **Emoji** are automatically substituted with **twemoji images**, so they render fine
-  (needs outbound network). Complex ZWJ emoji may vary.
-- **Plain symbols** (`→`, `✓`, `⇒`, …) are *not* emoji, so they need a font that
-  contains them.
+```
+'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans SC', 'Noto Sans Symbols 2'
+```
+
+This covers Latin, Devanagari/Hindi, Chinese (CJK) and common symbols (`→`, `✓`, `₹`, …).
+Emoji are automatically substituted with **twemoji images** (needs outbound network;
+complex ZWJ emoji may vary).
+
+> ⭐ **Recommended: set the font explicitly in your code.** The automatic default gives
+> you *a* consistent look, but not *your* look — selected metrics and spacing can shift
+> between environments and renderer versions. For a brand-accurate, reproducible image,
+> load the exact font you want via `fonts` / `fontUrl` **and** set the matching
+> `font-family`. This avoids the "random look" of auto-chosen fonts, so the image comes
+> out exactly how you intend.
+
+- `fonts: false` disables the default stack (Geist only — non-Latin becomes tofu ❌).
+- Emoji work automatically; **plain symbols** (`→`, `✓`, `⇒`, …) are not emoji, so they
+  need a font that contains them (the default stack does).
 
 Fix options for missing glyphs:
 
@@ -172,7 +186,7 @@ vercel --prod
 ## Notes
 
 - **Conversion only, on purpose.** There is no embeddable `GET` image URL. Each `POST` renders once; store the bytes and serve them from your own storage/CDN so your server is never hit by a hotlinked `<img>`.
-- Takumi never reads system fonts. The built-in **Geist** covers Latin only; other scripts and symbols need an explicit font via the `fonts` / `fontUrl` params. See [Text, symbols & fonts](#text-symbols--fonts).
+- Takumi never reads system fonts. Omit `fonts` to use the built-in **Noto** fallback stack (Latin + Devanagari + CJK + symbols); for an exact look, always pass your font explicitly via `fonts` / `fontUrl`. See [Text, symbols & fonts](#text-symbols--fonts).
 - Emoji are substituted with twemoji images automatically (needs outbound network); plain symbols like `→` are not emoji and render as tofu unless a font provides them.
 - Image layering has quirks — see [Images & overlays](#images--overlays) before writing photo + overlay HTML.
 - `url` mode accepts a direct `.html` file link or a live website URL, but renders the fetched HTML text only — external stylesheets and relative assets are not resolved. See [Rendering from a URL](#rendering-from-a-url).

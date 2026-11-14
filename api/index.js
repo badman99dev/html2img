@@ -23,7 +23,7 @@ const USAGE = {
     height: `Image height in px, ${LIMITS.height.min}-${LIMITS.height.max} (default ${LIMITS.height.fallback})`,
     format: `Output format: ${Object.keys(FORMATS).join(" | ")} (default png)`,
     quality: `Quality for jpeg/webp, ${LIMITS.quality.min}-${LIMITS.quality.max} (default ${LIMITS.quality.fallback})`,
-    fonts: 'Google Fonts to load, e.g. [{"name":"Noto Sans Devanagari"},{"name":"Inter","weight":"400..700"}]',
+    fonts: 'Google Fonts to load, e.g. [{"name":"Noto Sans Devanagari"},{"name":"Inter","weight":"400..700"}]. Omit to use built-in Noto stack; false disables it',
     fontUrl: "URL of a custom font file (.woff2/.ttf/.otf) to load",
   },
   example:
